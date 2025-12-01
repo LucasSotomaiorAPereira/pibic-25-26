@@ -146,7 +146,7 @@ class CreatorDL:
         X_test = df_test.drop(['Label', 'Attack'], axis=1)
         y_test = df_test['Label'].to_numpy()
         
-        X_test = scaler.fit_transform(X_test)
+        X_test = scaler.transform(X_test)
         
         X_test = torch.tensor(X_test, dtype=torch.float32)
         y_test = torch.tensor(y_test, dtype=torch.long)
@@ -182,7 +182,7 @@ class CreatorDL:
         X_val = df_val.drop(['Label', 'Attack'], axis=1)
         y_val = df_val['Label'].to_numpy()
         
-        X_val = scaler.fit_transform(X_val)
+        X_val = scaler.transform(X_val)
         
         X_val = torch.tensor(X_val, dtype=torch.float32)
         y_val = torch.tensor(y_val, dtype=torch.long)
