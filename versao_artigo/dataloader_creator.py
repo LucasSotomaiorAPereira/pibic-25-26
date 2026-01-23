@@ -201,8 +201,8 @@ class CreatorDL:
         test_dataset = TensorDataset(X_test, y_test)
         val_dataset = TensorDataset(X_val, y_val)
                 
-        train_loader = DataLoader(train_dataset, batch_size=self.bs, shuffle=True, num_workers=4, pin_memory=True)
-        test_loader = DataLoader(test_dataset, batch_size=self.bs, shuffle=False, num_workers=4, pin_memory=True)
-        val_loader = DataLoader(val_dataset, batch_size=self.bs, shuffle=False, num_workers=4, pin_memory=True)
+        train_loader = DataLoader(train_dataset, batch_size=self.bs, shuffle=True, pin_memory=True)
+        test_loader = DataLoader(test_dataset, batch_size=self.bs, shuffle=False, pin_memory=True)
+        val_loader = DataLoader(val_dataset, batch_size=self.bs, shuffle=False, pin_memory=True)
 
         return train_loader, test_loader, val_loader
