@@ -10,7 +10,7 @@ class CreatorDL:
     def __init__(self, seed, bs):
         self.seed = seed
         self.bs = bs
-
+    
     def reader(self, filename):
         df = pd.read_csv(f'../db/{filename}.csv')
         
