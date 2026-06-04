@@ -5,6 +5,7 @@ import torch
 from torch.utils.data import TensorDataset, DataLoader
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+import joblib
 
 class CreatorDL:
     def __init__(self, seed, bs):
@@ -87,7 +88,7 @@ class CreatorDL:
 
         return df_train, df_test, df_val
 
-    def balancer(self, df_train, df_test, df_val):
+    def balancer(self, df_train, df_test, df_val, model):
         scaler = MinMaxScaler()
 
         df_train_benign = df_train[df_train['Attack'] == 'Benign']
@@ -111,6 +112,8 @@ class CreatorDL:
         y_train = df_train['Label'].to_numpy()
         
         X_train = scaler.fit_transform(X_train)
+
+        joblib.dump(scaler, f'scaler_{model}.pkl')
         
         X_train = torch.tensor(X_train, dtype=torch.float32)
         y_train = torch.tensor(y_train, dtype=torch.long)
@@ -126,21 +129,21 @@ class CreatorDL:
         print(X_train.min(), X_train.max(), X_train.mean())
         print("-" * 25)
 
-        df_test_benign = df_test[df_test['Attack'] == 'Benign']
-        df_test_attacks = df_test[df_test['Attack'] != 'Benign']
+        # df_test_benign = df_test[df_test['Attack'] == 'Benign']
+        # df_test_attacks = df_test[df_test['Attack'] != 'Benign']
         
-        rus = df_test_attacks['Attack'].value_counts().min()
-        if rus < 1000:
-            rus = 1000
+        # rus = df_test_attacks['Attack'].value_counts().min()
+        # if rus < 1000:
+        #     rus = 1000
         
-        df_test_attacks_balanced = df_test_attacks.groupby('Attack').sample(n=rus, replace=True, random_state=self.seed)
+        # df_test_attacks_balanced = df_test_attacks.groupby('Attack').sample(n=rus, replace=True, random_state=self.seed)
         
-        num_attack_classes = len(df_test_attacks['Attack'].unique())
-        num_benign_samples = num_attack_classes * rus
-        df_test_benign_sampled = df_test_benign.sample(n=num_benign_samples, random_state=self.seed)
+        # num_attack_classes = len(df_test_attacks['Attack'].unique())
+        # num_benign_samples = num_attack_classes * rus
+        # df_test_benign_sampled = df_test_benign.sample(n=num_benign_samples, random_state=self.seed)
         
-        df_test = pd.concat([df_test_attacks_balanced, df_test_benign_sampled])
-        df_test = shuffle(df_test, random_state=self.seed).reset_index(drop=True)
+        # df_test = pd.concat([df_test_attacks_balanced, df_test_benign_sampled])
+        # df_test = shuffle(df_test, random_state=self.seed).reset_index(drop=True)
         
         
         X_test = df_test.drop(['Label', 'Attack'], axis=1)
@@ -162,21 +165,21 @@ class CreatorDL:
         print(X_test.min(), X_test.max(), X_test.mean())
         print("-" * 25)
 
-        df_val_benign = df_val[df_val['Attack'] == 'Benign']
-        df_val_attacks = df_val[df_val['Attack'] != 'Benign']
+        # df_val_benign = df_val[df_val['Attack'] == 'Benign']
+        # df_val_attacks = df_val[df_val['Attack'] != 'Benign']
         
-        rus = df_val_attacks['Attack'].value_counts().min()
-        if rus < 1000:
-            rus = 1000
+        # rus = df_val_attacks['Attack'].value_counts().min()
+        # if rus < 1000:
+        #     rus = 1000
         
-        df_val_attacks_balanced = df_val_attacks.groupby('Attack').sample(n=rus, replace=True, random_state=self.seed)
+        # df_val_attacks_balanced = df_val_attacks.groupby('Attack').sample(n=rus, replace=True, random_state=self.seed)
         
-        num_attack_classes = len(df_val_attacks['Attack'].unique())
-        num_benign_samples = num_attack_classes * rus
-        df_val_benign_sampled = df_val_benign.sample(n=num_benign_samples, random_state=self.seed)
+        # num_attack_classes = len(df_val_attacks['Attack'].unique())
+        # num_benign_samples = num_attack_classes * rus
+        # df_val_benign_sampled = df_val_benign.sample(n=num_benign_samples, random_state=self.seed)
         
-        df_val = pd.concat([df_val_attacks_balanced, df_val_benign_sampled])
-        df_val = shuffle(df_val, random_state=self.seed).reset_index(drop=True)
+        # df_val = pd.concat([df_val_attacks_balanced, df_val_benign_sampled])
+        # df_val = shuffle(df_val, random_state=self.seed).reset_index(drop=True)
         
         
         X_val = df_val.drop(['Label', 'Attack'], axis=1)
