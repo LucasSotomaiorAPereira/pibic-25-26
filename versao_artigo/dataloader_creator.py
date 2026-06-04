@@ -91,32 +91,37 @@ class CreatorDL:
     def balancer(self, df_train, df_test, df_val, model):
         scaler = MinMaxScaler()
 
-        df_train_benign = df_train[df_train['Attack'] == 'Benign']
+        X_train_original = df_train.drop(['Label', 'Attack'], axis=1)
+        y_train_original = df_train['Label'].to_numpy()
+    
+        scaler.fit(X_train_original)
+        joblib.dump(scaler, f'scaler_{model}.pkl')
+    
         df_train_attacks = df_train[df_train['Attack'] != 'Benign']
+        df_train_benign  = df_train[df_train['Attack'] == 'Benign']
         
-        rus = df_train_attacks['Attack'].value_counts().min()
-        if rus < 1000:
-            rus = 1000
+        rus = max(df_train_attacks['Attack'].value_counts().min(), 1000)
         
-        df_train_attacks_balanced = df_train_attacks.groupby('Attack').sample(n=rus, replace=True, random_state=self.seed)
+        df_train_attacks_balanced = df_train_attacks.groupby('Attack').sample(
+            n=rus, replace=True, random_state=self.seed
+        )
         
         num_attack_classes = len(df_train_attacks['Attack'].unique())
-        num_benign_samples = num_attack_classes * rus
-        df_train_benign_sampled = df_train_benign.sample(n=num_benign_samples, random_state=self.seed)
         
-        df_train = pd.concat([df_train_attacks_balanced, df_train_benign_sampled])
-        df_train = shuffle(df_train, random_state=self.seed).reset_index(drop=True)
+        df_train_benign_sampled = df_train_benign.sample(
+            n=num_attack_classes * rus, random_state=self.seed
+        )
         
+        df_train_bal = shuffle(
+            pd.concat([df_train_attacks_balanced, df_train_benign_sampled]),
+            random_state=self.seed
+        ).reset_index(drop=True)
+    
+        X_train = scaler.transform(df_train_bal.drop(['Label', 'Attack'], axis=1))
+        y_train = df_train_bal['Label'].to_numpy()
         
-        X_train = df_train.drop(['Label', 'Attack'], axis=1)
-        y_train = df_train['Label'].to_numpy()
-        
-        X_train = scaler.fit_transform(X_train)
-
-        joblib.dump(scaler, f'scaler_{model}.pkl')
-        
-        X_train = torch.tensor(X_train, dtype=torch.float32)
-        y_train = torch.tensor(y_train, dtype=torch.long)
+        # X_train = torch.tensor(X_train, dtype=torch.float32)
+        # y_train = torch.tensor(y_train, dtype=torch.long)
 
         print(f"\n--- train ---")
         print(df_train['Label'].value_counts())
@@ -146,13 +151,11 @@ class CreatorDL:
         # df_test = shuffle(df_test, random_state=self.seed).reset_index(drop=True)
         
         
-        X_test = df_test.drop(['Label', 'Attack'], axis=1)
+        X_test = scaler.transform(df_test.drop(['Label', 'Attack'], axis=1))
         y_test = df_test['Label'].to_numpy()
         
-        X_test = scaler.transform(X_test)
-        
-        X_test = torch.tensor(X_test, dtype=torch.float32)
-        y_test = torch.tensor(y_test, dtype=torch.long)
+        # X_test = torch.tensor(X_test, dtype=torch.float32)
+        # y_test = torch.tensor(y_test, dtype=torch.long)
 
         print(f"\n--- test ---")
         print(df_test['Label'].value_counts())
@@ -182,13 +185,11 @@ class CreatorDL:
         # df_val = shuffle(df_val, random_state=self.seed).reset_index(drop=True)
         
         
-        X_val = df_val.drop(['Label', 'Attack'], axis=1)
+        X_val = scaler.transform(df_val.drop(['Label', 'Attack'], axis=1))
         y_val = df_val['Label'].to_numpy()
         
-        X_val = scaler.transform(X_val)
-        
-        X_val = torch.tensor(X_val, dtype=torch.float32)
-        y_val = torch.tensor(y_val, dtype=torch.long)
+        # X_val = torch.tensor(X_val, dtype=torch.float32)
+        # y_val = torch.tensor(y_val, dtype=torch.long)
 
         print(f"\n--- val ---")
         print(df_val['Label'].value_counts())
