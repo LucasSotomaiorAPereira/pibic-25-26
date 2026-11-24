@@ -88,7 +88,7 @@ class CreatorDL:
 
         return df_train, df_test, df_val
 
-    def balancer(self, df_train, df_test, df_val, model):
+    def balancer(self, df_train, df_test, df_val, model, sample_size_min):
         scaler = MinMaxScaler()
 
         X_train_original = df_train.drop(['Label', 'Attack'], axis=1)
@@ -100,16 +100,18 @@ class CreatorDL:
         df_train_attacks = df_train[df_train['Attack'] != 'Benign']
         df_train_benign  = df_train[df_train['Attack'] == 'Benign']
         
-        rus = max(df_train_attacks['Attack'].value_counts().min(), 1000)
+        rus = max(df_train_attacks['Attack'].value_counts().min(), sample_size_min)
         
-        df_train_attacks_balanced = df_train_attacks.groupby('Attack').sample(
-            n=rus, replace=True, random_state=self.seed
+        df_train_attacks_balanced = df_train_attacks.groupby('Attack', group_keys=False).apply(
+            lambda x: x.sample(n=rus, replace=(len(x) < rus), random_state=self.seed),
+            include_groups=False
         )
         
         num_attack_classes = len(df_train_attacks['Attack'].unique())
         
+        target_benign = num_attack_classes * rus
         df_train_benign_sampled = df_train_benign.sample(
-            n=num_attack_classes * rus, random_state=self.seed
+            n=target_benign, random_state=self.seed, replace=(len(df_train_benign) < target_benign)
         )
         
         df_train_bal = shuffle(
